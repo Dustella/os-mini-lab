@@ -1,7 +1,10 @@
-use std::{
-    sync::mpsc::{channel, Receiver, Sender},
-    thread::{self, sleep, JoinHandle},
-    time::Duration,
+use std::time::Duration;
+use tokio::{
+    sync::{
+        mpsc::{self, Receiver, Sender},
+        Mutex,
+    },
+    time::sleep,
 };
 
 #[derive(Clone)]
@@ -25,26 +28,25 @@ impl Task {
 }
 
 pub struct TaskList {
-    adder: Sender<Task>,
-    getter: Receiver<Task>,
+    list: Mutex<Vec<Task>>,
 }
 
 impl TaskList {
-    pub fn new(ls: &Vec<Task>) -> (Self, Vec<JoinHandle<()>>) {
-        let (adder, getter) = channel::<Task>();
-        let mut add_queue = Vec::new();
+    pub fn new(ls: &Vec<Task>) -> Self {
+        let list = Mutex::new(*ls);
         for e in ls.clone() {
-            let adder = adder.clone();
-            let sp = thread::spawn(move || {
+            let sp = tokio::spawn(async move {
                 sleep(Duration::from_secs(e.clone().start_time));
-                adder.send(e.clone()).unwrap();
+                // push task
             });
             add_queue.push(sp);
         }
-        (Self { adder, getter }, add_queue)
+        let mut add_queue = Vec::new();
+        Self { list }
     }
+    pub fn run(self) {}
     pub fn get_max_ratio_task(&mut self, time_passed: u64) -> Task {
-        let rec = self.getter.iter();
+        let rec = self.getter.try_recv();
         let mut tasks: Vec<Task> = rec.into_iter().collect();
         tasks.sort_by(|a, b| {
             a.get_response_ratio(time_passed)

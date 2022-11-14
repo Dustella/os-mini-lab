@@ -1,12 +1,8 @@
-use std::{
-    sync::mpsc::channel,
-    thread::{self},
-    time::{Duration, Instant},
-};
-
 mod task;
 use task::*;
-fn main() {
+
+#[tokio::main]
+async fn main() {
     let all_task_list = vec![
         Task {
             name: "".to_string(),
