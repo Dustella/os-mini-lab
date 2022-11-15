@@ -5,17 +5,27 @@ use task::*;
 async fn main() {
     let all_task_list = vec![
         Task {
-            name: "".to_string(),
-            duration: 5,
-            start_time: 0,
+            name: "Task1".to_string(),
+            duration: 12.0,
+            start_time: 0.0,
         },
         Task {
-            name: "".to_string(),
-            duration: 5,
-            start_time: 5,
+            name: "Task2".to_string(),
+            duration: 3.0,
+            start_time: 5.0,
+        },
+        Task {
+            name: "Task3".to_string(),
+            duration: 0.6,
+            start_time: 6.0,
+        },
+        Task {
+            name: "Task4".to_string(),
+            duration: 1.2,
+            start_time: 8.0,
         },
     ];
-    let mut tasklist = TaskList::new();
+    let tasklist = TaskList::new();
     tasklist.start_tasks(&all_task_list).await;
 
     // for i in ls {
