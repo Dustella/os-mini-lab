@@ -35,8 +35,10 @@ impl TaskList {
         let timer = time::Instant::now();
         Self { list, timer }
     }
+
     pub async fn start_tasks(mut self, tasks: &Vec<Task>) {
         let mut joined_jobs = Vec::new();
+
         for e in tasks.clone() {
             let list_lock = self.list.clone();
             let sp = tokio::spawn(async move {
@@ -44,7 +46,7 @@ impl TaskList {
                 let mut task_list = list_lock.lock().await;
                 // push task
                 println!(
-                    "{}s passed, {} is added to the queue.",
+                    "{}秒钟, {} 被加入了就绪队列",
                     e.clone().start_time,
                     e.clone().name
                 );
@@ -52,6 +54,7 @@ impl TaskList {
             });
             joined_jobs.push(sp);
         }
+
         let main_task = tokio::spawn(async move {
             println!("Start");
             sleep(Duration::from_secs(1)).await;
@@ -63,6 +66,7 @@ impl TaskList {
         join_all(joined_jobs).await;
         println!("All task finished")
     }
+
     pub async fn get_max_ratio_task(&mut self) -> Option<Task> {
         let time_passed = self.timer.elapsed().as_secs_f64();
         println!("开始执行调度算法：");
@@ -70,7 +74,7 @@ impl TaskList {
         let mut locked_list = self.list.lock().await;
         // let mut tasks: Vec<Task> = rec.into_iter().collect();
         locked_list.sort_by(|a, b| {
-            if (a.get_response_ratio(time_passed) - b.get_response_ratio(time_passed))
+            if (a.get_response_ratio(time_passed - 1.0) - b.get_response_ratio(time_passed - 1.0))
                 .is_sign_negative()
             {
                 Ordering::Less
@@ -78,13 +82,17 @@ impl TaskList {
                 Ordering::Greater
             }
         });
+        println!("=================");
+        println!("{0: <7} | {1: <7} |", "任务".to_string(), "响应比");
         for i in locked_list.clone() {
-            print!(
-                "任务{}, 响应比{}; ",
+            println!(
+                "{0: <10}| {1: <10} |",
                 i.name,
-                i.get_response_ratio(time_passed)
+                (i.get_response_ratio(time_passed) * 1000.0).round() / 1000.0
             );
         }
+        println!();
+        println!("================");
         println!();
         let res = locked_list.pop();
 

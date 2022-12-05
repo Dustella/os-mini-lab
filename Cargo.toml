@@ -1,2 +1,2 @@
 [workspace]
-members = ["p_v", "tasks"]
+members = ["p_v", "tasks","bank"]
