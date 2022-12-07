@@ -24,7 +24,8 @@ async fn main() {
     a.allocate("c", 10);
     a.allocate("d", 10);
     a.deallocate("a");
+    a.deallocate("c");
     a.deallocate("b");
-    a.allocate("3", 100);
+    a.allocate("3", 10);
     dbg!(&a);
 }

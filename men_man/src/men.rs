@@ -22,7 +22,8 @@ impl Memory {
         let mut size = size;
         for (start, end) in self.free.clone() {
             if size == 0 {
-                break;
+                free.push((start, end));
+                continue;
             }
             if end - start >= size {
                 allocated.push((start, start + size));
@@ -54,20 +55,27 @@ impl Memory {
     }
     // merge pages that are next to each other
     pub fn merge(&mut self) {
+        println!("before merge");
         self.free.sort_by(|a, b| a.0.cmp(&b.0));
+        dbg!(&self.free);
         let mut merged = Vec::new();
         let mut last = self.free[0];
-        for (start, end) in self.free.clone() {
-            if start == last.1 {
-                last.1 = end;
+        for (index, (start, end)) in self.free.clone().iter().enumerate() {
+            if *start == last.1 {
+                last.1 = *end;
             } else {
-                merged.push(last);
-                last = (start, end);
+                if index != 0 {
+                    merged.push(last);
+                    last = (*start, *end);
+                }
             }
         }
         merged.push(last);
         // removes the same element in the list
         merged.dedup();
+        println!("after merge");
+        dbg!(&merged);
+        println!("====================");
         self.free = merged;
     }
 }
